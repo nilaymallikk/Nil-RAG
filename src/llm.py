@@ -26,16 +26,33 @@ from src.config import (
 
 from src.client import client
 
-def test_llm():
+DEFAULT_CHAT_MODEL = "tencent/hy3:free"
+
+def generate_answer(context: str, question: str):
+    prompt = f"""
+You are a helpful AI assistant.
+
+Answer ONLY using the provided context.
+
+If the answer is not contained in the context,
+respond with:
+"I couldn't find that information in the document."
+
+Context:
+{context}
+
+Question:
+{question}
+"""
 
     response = client.chat.completions.create(
-        model="nvidia/nemotron-3-super-120b-a12b:free",
+        model=DEFAULT_CHAT_MODEL,
         messages=[
             {
-                "role":"user",
-                "content":"Say hello in one sentence"
+                "role": "user",
+                "content": prompt,
             }
-        ]
+        ],
     )
 
-    return response
+    return response.choices[0].message.content

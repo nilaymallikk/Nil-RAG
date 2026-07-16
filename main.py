@@ -42,10 +42,28 @@ from src.config import (
 #     print()
 #     print(chunk.metadata)
 
-from src.loader import load_pdf
-from src.splitter import split_documents
-from src.vector_store import upload_chunks
+# from src.loader import load_pdf
+# from src.splitter import split_documents
+# from src.vector_store import upload_chunks
+# documents = load_pdf("data/ml-Ajay Anand.pdf")
+# chunks = split_documents(documents)
+# upload_chunks(chunks)
 
-documents = load_pdf("data/ml-Ajay Anand.pdf")
-chunks = split_documents(documents)
-upload_chunks(chunks)
+
+# from src.retriever import retrieve
+# query = "What is K means clustering? and How does it work?"
+# results = retrieve(query)
+# # print(results)
+
+# for match in results.matches:
+#     print("=" * 80)
+#     print("Score:", match.score)
+#     print("Page:", match.metadata["page"])
+#     print("Source:", match.metadata["source"])
+#     print(match.metadata["text"])
+
+from src.chatbot import ask_question
+question = input("Ask: ")
+answer = ask_question(question)
+print(answer)
+
