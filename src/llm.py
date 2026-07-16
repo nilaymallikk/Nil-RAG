@@ -25,34 +25,21 @@ from src.config import (
 )
 
 from src.client import client
+from src.config import CHAT_MODEL
 
-DEFAULT_CHAT_MODEL = "tencent/hy3:free"
+template = load_prompt("rag_prompt.txt")
 
-def generate_answer(context: str, question: str):
-    prompt = f"""
-You are a helpful AI assistant.
+prompt = template.format(
+    context=context,
+    question=question,
+)
 
-Answer ONLY using the provided context.
-
-If the answer is not contained in the context,
-respond with:
-"I couldn't find that information in the document."
-
-Context:
-{context}
-
-Question:
-{question}
-"""
-
-    response = client.chat.completions.create(
-        model=DEFAULT_CHAT_MODEL,
-        messages=[
-            {
-                "role": "user",
-                "content": prompt,
-            }
-        ],
-    )
-
-    return response.choices[0].message.content
+response = client.chat.completions.create(
+    model=CHAT_MODEL,
+    messages=[
+        {
+            "role": "user",
+            "content": prompt,
+        }
+    ],
+)
