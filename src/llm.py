@@ -1,45 +1,36 @@
+from src.client import client
+from src.config import CHAT_MODEL
+from src.utils.prompt_loader import load_prompt
+
 """
 llm.py
 
 Takes:
+- User question
+- Retrieved context
 
-Question
-
-Retrieved chunks
-
-↓
-
-Calls Nemotron
-
-↓
-
-Returns answer
+Returns:
+- Generated answer from the LLM
 """
-from openai import OpenAI
 
-from src.config import (
-    OPENROUTER_API_KEY,
-    OPENROUTER_BASE_URL,
-    GEMINI_API_KEY,
-    GEMINI_BASE_URL,
-)
 
-from src.client import client
-from src.config import CHAT_MODEL
+def generate_answer(context: str, question: str):
 
-template = load_prompt("rag_prompt.txt")
+    template = load_prompt("rag_prompt.txt")
 
-prompt = template.format(
-    context=context,
-    question=question,
-)
+    prompt = template.format(
+        context=context,
+        question=question,
+    )
 
-response = client.chat.completions.create(
-    model=CHAT_MODEL,
-    messages=[
-        {
-            "role": "user",
-            "content": prompt,
-        }
-    ],
-)
+    response = client.chat.completions.create(
+        model=CHAT_MODEL,
+        messages=[
+            {
+                "role": "user",
+                "content": prompt,
+            }
+        ],
+    )
+
+    return response.choices[0].message.content

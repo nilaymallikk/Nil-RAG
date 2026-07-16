@@ -64,6 +64,14 @@ from src.config import (
 
 from src.chatbot import ask_question
 question = input("Ask: ")
-answer = ask_question(question)
-print(answer)
+result = ask_question(question)
+print("\nAnswer:\n")
+print(result["answer"])
+
+print("\nSources:\n")
+
+for source in result["sources"]:
+    print(
+        f'{source["source"]} | Page {source["page"]} | Score: {source["score"]}'
+    )
 
