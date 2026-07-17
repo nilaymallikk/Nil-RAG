@@ -1,4 +1,4 @@
-from src.client import client
+from src.client import chat_client
 from src.config import CHAT_MODEL
 from src.utils.prompt_loader import load_prompt
 
@@ -23,7 +23,7 @@ def generate_answer(context: str, question: str):
         question=question,
     )
 
-    response = client.chat.completions.create(
+    response = chat_client.chat.completions.create(
         model=CHAT_MODEL,
         messages=[
             {

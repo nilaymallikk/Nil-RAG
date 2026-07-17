@@ -62,16 +62,49 @@ from src.config import (
 #     print("Source:", match.metadata["source"])
 #     print(match.metadata["text"])
 
+import argparse
+
+from src.indexer import index_pdf
 from src.chatbot import ask_question
-question = input("Ask: ")
-result = ask_question(question)
-print("\nAnswer:\n")
-print(result["answer"])
 
-print("\nSources:\n")
+parser = argparse.ArgumentParser()
 
-for source in result["sources"]:
-    print(
-        f'{source["source"]} | Page {source["page"]} | Score: {source["score"]}'
-    )
+parser.add_argument(
+    "--mode",
+    choices=["index", "chat"],
+    required=True,
+)
 
+parser.add_argument(
+    "--pdf",
+    default="data/document.pdf",
+)
+
+args = parser.parse_args()
+
+if args.mode == "index":
+
+    index_pdf(args.pdf)
+
+elif args.mode == "chat":
+
+    while True:
+
+        question = input("\nAsk: ")
+
+        if question.lower() in ["exit", "quit"]:
+            break
+
+        result = ask_question(question)
+
+        print("\nAnswer:\n")
+        print(result["answer"])
+
+        print("\nSources:")
+
+        for source in result["sources"]:
+            print(
+                f"- {source['source']} | "
+                f"Page {source['page']} | "
+                f"Score: {source['score']}"
+            )

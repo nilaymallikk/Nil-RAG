@@ -8,22 +8,20 @@ load_dotenv()
 # ==========================
 
 OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
-GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 PINECONE_API_KEY = os.getenv("PINECONE_API_KEY")
+JINA_API_KEY = os.getenv("JINA_API_KEY")
 
 # ==========================
 # API URL
 # ==========================
 
 OPENROUTER_BASE_URL = "https://openrouter.ai/api/v1"
-GEMINI_BASE_URL = "https://generativelanguage.googleapis.com/v1beta2/models/chat-bison-001:generateMessage"
-
 # ==========================
 # MODELS
 # ==========================
 
 CHAT_MODEL: str = "tencent/hy3:free"
-EMBEDDING_MODEL: str = "nvidia/llama-nemotron-embed-vl-1b-v2:free"
+EMBEDDING_MODEL = "jina-embeddings-v5-text-small"
 
 # ==========================
 # PINECONE

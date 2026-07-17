@@ -1,48 +1,88 @@
-try:
-    from pinecone import Pinecone, index
-except Exception:
-    Pinecone = None
-    index = None
+from pinecone import Pinecone
+import uuid
+from pathlib import Path
 
 from src.config import (
     PINECONE_API_KEY,
     PINECONE_INDEX_NAME,
 )
 
-if Pinecone is not None:
-    pc = Pinecone(api_key=PINECONE_API_KEY)
-    index = pc.Index(PINECONE_INDEX_NAME)
-else:
-    pc = None
+# -----------------------------
+# Initialize Pinecone
+# -----------------------------
 
-from src.embedding import get_embedding
+pc = Pinecone(api_key=PINECONE_API_KEY)
+index = pc.Index(PINECONE_INDEX_NAME)
 
-def upload_document(chunk, chunk_id):
-    if index is None:
-        raise RuntimeError(
-            "The 'pinecone' package is not installed or failed to import. "
-            "Install dependencies with: pip install -r requirements.txt"
-        )
 
-    vector = get_embedding(chunk.page_content)
-    index.upsert(
-        vectors=[
+# -----------------------------
+# Build Pinecone vectors
+# -----------------------------
+
+def build_vectors(chunks, embeddings):
+    """
+    Convert chunks + embeddings into Pinecone vector format.
+    """
+
+    vectors = []
+
+    for chunk, embedding in zip(chunks, embeddings):
+
+        vectors.append(
             {
-                "id": chunk_id,
-                "values": vector,
+                "id": str(uuid.uuid4()),
+                "values": embedding,
                 "metadata": {
-                    "page": chunk.metadata["page"],
-                    "source": chunk.metadata["source"],
                     "text": chunk.page_content,
+                    "page": chunk.metadata.get("page", 0),
+                    "source": chunk.metadata.get("source", ""),
+                    "document": Path(
+                        chunk.metadata.get("source", "")
+                    ).stem,
                 },
             }
-        ]
-    ) 
-
-def upload_chunks(chunks):
-    for i, chunk in enumerate(chunks):
-        upload_document(chunk,
-                        chunk_id=f"chunk-{i}"
         )
 
-        print(f"Uploaded chunk {i} ")    
+    return vectors
+
+
+# -----------------------------
+# Upload vectors
+# -----------------------------
+
+def upload_vectors(vectors):
+    """
+    Upload vectors to Pinecone.
+    """
+
+    index.upsert(vectors=vectors)
+
+
+# -----------------------------
+# Batch Upload
+# -----------------------------
+
+def upload_batches(chunks, embeddings, batch_size=100):
+    """
+    Upload vectors in batches.
+    """
+
+    total = len(chunks)
+
+    for start in range(0, total, batch_size):
+
+        end = start + batch_size
+
+        chunk_batch = chunks[start:end]
+        embedding_batch = embeddings[start:end]
+
+        vectors = build_vectors(
+            chunk_batch,
+            embedding_batch,
+        )
+
+        upload_vectors(vectors)
+
+        print(
+            f"Uploaded {min(end, total)}/{total} chunks"
+        )

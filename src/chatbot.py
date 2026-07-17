@@ -27,7 +27,7 @@ from src.retriever import (
 from src.llm import generate_answer
 
 def ask_question(question: str):
-    # step 1: retrive candidates
+    # step 1: retrive candidates 
     results = retrieve(question)
 
     # step 2: filter weak matc
@@ -43,7 +43,7 @@ def ask_question(question: str):
             "sources": [],
         }
     
-    # srep 4: build context
+    # step 4: build context
     context = build_context(matches)
 
     # step 5: generate answer
