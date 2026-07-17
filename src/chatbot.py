@@ -30,7 +30,7 @@ def ask_question(question: str):
     # step 1: retrive candidates 
     results = retrieve(question)
 
-    # step 2: filter weak matc
+    # step 2: filter weak match
     matches = filter_results(results)
     print("\nRetrieved Results:")
     for match in results.matches:

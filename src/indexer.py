@@ -9,24 +9,28 @@ def index_pdf(pdf_path: str):
     Complete indexing pipeline.
     """
 
-    print("Loading PDF...")
+    from src.logger import logger
+    logger.info(f"Indexing PDF: {pdf_path}")
     documents = load_pdf(pdf_path)
 
-    print(f"Loaded {len(documents)} pages")
+    logger.info(f"Loaded {len(documents)} pages")
 
-    print("Splitting documents...")
+    logger.info("Splitting documents...")
     chunks = split_documents(documents)
 
-    print(f"Created {len(chunks)} chunks")
+    logger.info(f"Created {len(chunks)} chunks")
 
-    print("Generating embeddings...")
+    logger.info("Generating embeddings...")
 
     texts = [chunk.page_content for chunk in chunks]
 
     embeddings = get_embeddings(texts)
 
-    print("Uploading to Pinecone...")
+    logger.info("Uploading to Pinecone...")
 
     upload_batches(chunks, embeddings)
 
-    print("Indexing completed!")
+    logger.info("Indexing completed!")
+
+    logger.error("Embedding generation failed")
+    logger.warning("No relevant documents found")

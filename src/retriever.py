@@ -1,6 +1,6 @@
 from src.vector_store import index
 from src.embedding import get_embedding
-from src.config import TOP_K
+from src.config import TOP_K, MIN_SCORE
 
 
 def retrieve(query: str):
@@ -18,13 +18,28 @@ def retrieve(query: str):
 
     return results
 
-def build_context(matches):
-    context = []
-    for match in matches:
-        context.append(match.metadata["text"])
-    return "\n\n".join(context)
+# Improve context building
 
-MIN_SCORE = 0.4
+def build_context(matches):
+    """
+    Convert retrieved matches into a prompt context.
+    """
+
+    passages = []
+
+    for i, match in enumerate(matches, start=1):
+
+        passages.append(
+            f"""Passage {i}
+Source: {match['source']}
+Page: {match['page']}
+
+{match['text']}"""
+        )
+
+    return "\n\n-------------------------\n\n".join(passages)
+
+MIN_SCORE = MIN_SCORE  # Use the MIN_SCORE from config.py
 def filter_results(results, min_score=MIN_SCORE):
     filtered = []
     for match in results.matches:
