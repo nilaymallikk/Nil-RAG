@@ -35,8 +35,8 @@ PINECONE_INDEX_NAME = os.getenv("PINECONE_INDEX_NAME")
 
 CHUNK_SIZE: int = 1000
 CHUNK_OVERLAP: int = 200
-TOP_K: int = 5
-MIN_SCORE: float = 0.35
+TOP_K: int = 7
+MIN_SCORE: float = 0.5
 # ==========================
 # LLM SETTINGS
 # ==========================

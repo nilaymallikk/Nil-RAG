@@ -14,7 +14,7 @@ Returns:
 """
 
 
-def generate_answer(context: str, question: str):
+def generate_answer(context: str, question: str, memory=None):
 
     template = load_prompt("rag_prompt.txt")
 
@@ -23,14 +23,23 @@ def generate_answer(context: str, question: str):
         question=question,
     )
 
+    # print(f"\n[DEBUG] Context preview:\n{prompt[:800]}")
+
+    history = memory.get_messages() if memory else []
+    # History first, then current question.
+    # The LLM reads top-to-bottom so it sees the full conversation
+    # before generating the response.
+    print(f"\n[DEBUG] Memory has {len(history)} messages")
+
+    messages = history + [{"role":"user", "content": prompt}]
+
+    # memory.get_messages() if memory else [] — this is a ternary. If no memory was passed (old callers), history is empty and it behaves exactly as before. No breaking change.
+
+     #  history + [...] — Python list concatenation. History goes first because the LLM reads the messages in order. The current question (wrapped in the full RAG prompt with context) comes last.
+
     response = chat_client.chat.completions.create(
         model=CHAT_MODEL,
-        messages=[
-            {
-                "role": "user",
-                "content": prompt,
-            }
-        ],
+        messages=messages,
     )
 
     return response.choices[0].message.content

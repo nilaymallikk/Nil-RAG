@@ -1,8 +1,8 @@
-from src.config import (
-    OPENROUTER_API_KEY,
-    PINECONE_API_KEY,
-    PINECONE_INDEX_NAME,
-)
+# from src.config import (
+#     OPENROUTER_API_KEY,
+#     PINECONE_API_KEY,
+#     PINECONE_INDEX_NAME,
+# )
 
 # from src.llm import test_llm
 # response = test_llm()
@@ -66,6 +66,7 @@ import argparse
 
 from src.indexer import index_pdf
 from src.chatbot import ask_question
+from src.memory import ConversationMemory
 
 parser = argparse.ArgumentParser()
 
@@ -88,6 +89,8 @@ if args.mode == "index":
 
 elif args.mode == "chat":
 
+    memory = ConversationMemory() # one instance, lives for the whole session
+
     while True:
 
         question = input("\nAsk: ")
@@ -95,7 +98,7 @@ elif args.mode == "chat":
         if question.lower() in ["exit", "quit"]:
             break
 
-        result = ask_question(question)
+        result = ask_question(question, memory=memory)
 
         print("\nAnswer:\n")
         print(result["answer"])

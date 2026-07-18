@@ -27,12 +27,13 @@ from src.retriever import (
 
 from src.llm import generate_answer
 
-def ask_question(question: str):
+def ask_question(question: str, memory=None):
     # step 1: retrive candidates 
     matches = retrieve_multi(question)
 
-    # step 2: filter weak match
-    matches = filter_results(matches)
+    # # step 2: filter weak match
+    # matches = filter_results(matches)
+    
     print("\nRetrieved Results:")
     for match in matches:
         print(
@@ -54,9 +55,16 @@ def ask_question(question: str):
     # step 5: generate answer
     answer = generate_answer(
         context=context, 
-        question=question
+        question=question,
+        memory=memory,
     )
-    #step 6: extract sources
+
+    # step 6: store this turn in memory AFTER generating the answer
+    if memory:
+        memory.add(question, answer)
+
+
+    #step 7: extract sources
     sources = extract_sources(matches)
     return {
         "answer": answer,
