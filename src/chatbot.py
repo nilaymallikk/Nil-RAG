@@ -22,18 +22,24 @@ from src.retriever import (
     filter_results,
     build_context,
     extract_sources,
+    retrieve_multi
 )
 
 from src.llm import generate_answer
 
 def ask_question(question: str):
     # step 1: retrive candidates 
-    results = retrieve(question)
+    matches = retrieve_multi(question)
 
     # step 2: filter weak match
-    matches = filter_results(results)
+    matches = filter_results(matches)
     print("\nRetrieved Results:")
-    for match in results.matches:
+    for match in matches:
+        print(
+            f"Score: {match['score']:.3f} | "
+            f"Page: {match['page']} | "
+            f"Source: {match['source']}"
+        )
         print(f"Score: {match.score:.3f}")
 
     # step 3: handel no matches

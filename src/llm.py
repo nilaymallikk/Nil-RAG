@@ -34,3 +34,36 @@ def generate_answer(context: str, question: str):
     )
 
     return response.choices[0].message.content
+
+
+# Add a helper for Multi-Query Retrieval (MQR)
+
+from pathlib import Path
+QUERY_PROMPT = Path("prompts/query_rewrite.txt").read_text(encoding="utf-8")
+
+def generate_search_queries(question: str) -> list[str]:
+    """
+    Generate multiple search queries from a user question.
+    """
+
+    prompt = QUERY_PROMPT.format(
+        question=question,
+    )
+
+    response = chat_client.chat.completions.create(
+        model = CHAT_MODEL,
+        messages=[
+            {
+                "role": "user",
+                "content": prompt,
+            }
+        ],
+    )
+
+    queries = response.choices[0].message.content.splitlines()
+
+    return [
+        q.strip("-• ").strip()
+        for q in queries
+        if q.strip()
+    ]
