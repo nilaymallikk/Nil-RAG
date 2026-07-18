@@ -109,6 +109,14 @@ def retrieve_multi(question: str):
 
     matches = list(unique.values())
 
+    # RERANKER
+    from src.reranker import rerank_matches
+
+    matches = list(unique.values())
+    matches.sort(key=lambda x: x["score"], reverse=True)
+    matches = rerank_matches(question, matches)
+    return matches[:TOP_K]
+
     # sort 
     matches.sort(
         key=lambda x: x["score"],

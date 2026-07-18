@@ -42,3 +42,10 @@ MIN_SCORE: float = 0.35
 # ==========================
 
 TEMPERATURE: float = 0.2
+
+# ==========================
+# Reranker Model
+# ==========================
+
+RERANKER_MODEL = "cross-encoder/ms-marco-MiniLM-L-6-v2"
+RERANK_TOP_K = 5
