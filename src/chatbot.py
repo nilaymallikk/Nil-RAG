@@ -40,7 +40,6 @@ def ask_question(question: str):
             f"Page: {match['page']} | "
             f"Source: {match['source']}"
         )
-        print(f"Score: {match.score:.3f}")
 
     # step 3: handel no matches
     if not matches:

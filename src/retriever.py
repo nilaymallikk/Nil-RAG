@@ -55,7 +55,7 @@ Page: {match['page']}
     return "\n\n-------------------------\n\n".join(passages)
 
 MIN_SCORE = MIN_SCORE  # Use the MIN_SCORE from config.py
-def filter_results(results, min_score=MIN_SCORE):
+def filter_results(matches, min_score=MIN_SCORE):
     filtered = []
     for match in matches:
         if match["score"] >= min_score:
@@ -64,13 +64,14 @@ def filter_results(results, min_score=MIN_SCORE):
 
 def extract_sources(matches):
     sources = []
+
     for match in matches:
         sources.append({
             "page": match["page"],
             "source": match["source"],
-            "score": round(match.score, 3),
-        }
-        )
+            "score": round(match["score"], 3),
+        })
+
     return sources
 
 # Function for Multi-Query Retrieval (MQR)
