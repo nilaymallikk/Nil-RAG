@@ -1,0 +1,22 @@
+2026-07-18 11:18:01,933 [INFO] Indexing PDF: data/ml-Ajay Anand.pdf
+2026-07-18 11:18:04,510 [INFO] Loaded 134 pages
+2026-07-18 11:18:04,510 [INFO] Splitting documents...
+2026-07-18 11:18:04,518 [INFO] Created 274 chunks
+2026-07-18 11:18:52,818 [INFO] Indexing PDF: data/ml-Ajay Anand.pdf
+2026-07-18 11:18:55,146 [INFO] Loaded 134 pages
+2026-07-18 11:18:55,146 [INFO] Splitting documents...
+2026-07-18 11:18:55,155 [INFO] Created 274 chunks
+2026-07-18 11:19:27,837 [INFO] Indexing PDF: data/ml-Ajay Anand.pdf
+2026-07-18 11:19:30,365 [INFO] Loaded 134 pages
+2026-07-18 11:19:30,365 [INFO] Splitting documents...
+2026-07-18 11:19:30,374 [INFO] Created 274 chunks
+2026-07-18 11:19:30,379 [INFO] Saved Chunks for BM25
+2026-07-18 11:19:30,379 [INFO] Generating embeddings...
+2026-07-18 11:19:33,455 [INFO] HTTP Request: POST https://api.jina.ai/v1/embeddings "HTTP/1.1 200 OK"
+2026-07-18 11:19:34,798 [INFO] Uploading to Pinecone...
+2026-07-18 11:19:34,800 [INFO] Upserting 100 vectors into namespace ''
+2026-07-18 11:19:43,788 [INFO] Upserting 100 vectors into namespace ''
+2026-07-18 11:19:46,460 [INFO] Upserting 74 vectors into namespace ''
+2026-07-18 11:19:47,891 [INFO] Indexing completed!
+2026-07-18 11:19:47,891 [ERROR] Embedding generation failed
+2026-07-18 11:19:47,892 [WARNING] No relevant documents found

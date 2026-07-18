@@ -88,7 +88,7 @@ def retrieve_multi(question: str):
     all_matches = []
 
     for query in queries:
-        matches = retrieve(query)
+        matches = hybrid_retrieve(query) # was: retrive(query)
         all_matches.extend(matches)
     
     # remove duplicate
@@ -126,6 +126,50 @@ def retrieve_multi(question: str):
     # Return only the best
     
     return matches[:TOP_K]
+
+# Fuse the two result lists (the heart of it)
+from src.bm25 import bm25_search
+
+
+def reciprocal_rank_fusion(result_lists, k=60):
+    """
+    Combine multiple ranked lists into one.
+
+    RRF ignores raw scores and uses only rank position, so vector
+    (0-1) and BM25 (unbounded) scores can be merged safely.
+
+    Each item's fused score = sum over lists of 1 / (k + rank).
+    `k=60` is the standard constant; it dampens the influence of
+    very low ranks.
+    """
+    fused = {}
+
+    for results in result_lists:
+        for rank, match in enumerate(results):
+            key = (match["source"], match["page"], match["text"])
+
+            if key not in fused:
+                # keep the match, start its fused score at 0
+                fused[key] = {**match, "score": 0.0}
+
+            fused[key]["score"] += 1.0 / (k + rank)
+
+    merged = list(fused.values())
+    merged.sort(key=lambda m: m["score"], reverse=True)
+    return merged
+
+
+def hybrid_retrieve(query: str):
+    """
+    Run vector + BM25 search and fuse the results with RRF.
+    """
+    vector_matches = retrieve(query)          # existing cosine search
+    keyword_matches = bm25_search(query, top_k=TOP_K)
+
+    return reciprocal_rank_fusion(
+        [vector_matches, keyword_matches]
+    )
+
 
 
 
