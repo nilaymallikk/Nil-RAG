@@ -1,6 +1,6 @@
 from src.vector_store import index
 from src.embedding import get_embedding
-from src.config import TOP_K, MIN_SCORE
+from src.config import TOP_K, MIN_SCORE, RRF_K
 from src.llm import generate_search_queries
 from src.bm25 import bm25_search
 from dataclasses import dataclass
@@ -122,16 +122,6 @@ def retrieve_multi(question: str):
     matches = rerank_matches(question, matches)
     return matches[:TOP_K]
 
-    # sort 
-    matches.sort(
-        key=lambda x: x["score"],
-        reverse=True
-    )
-
-    # Return only the best
-    
-    return matches[:TOP_K]
-
 @dataclass(frozen=True)
 class HybridCandidates:
     """Separate ranked candidates produced by each retrieval channel."""
@@ -149,35 +139,51 @@ def retrieve_hybrid_candidates(query: str) -> HybridCandidates:
     )
 
 
-def merge_hybrid_candidates(candidates: HybridCandidates) -> list[dict]:
-    """Create a de-duplicated candidate set for the cross-encoder reranker.
+def reciprocal_rank_fusion(
+    candidates: HybridCandidates,
+    k: int = RRF_K,
+) -> list[dict]:
+    """Fuse vector and BM25 rankings without comparing their raw scores.
 
-    This is intentionally a union, not score fusion. Vector and BM25 scores
-    are incomparable; RRF will introduce a principled ordering in the next
-    roadmap step.
+    Each candidate receives ``1 / (k + rank)`` per channel where it appears.
+    Rank starts at one, following the conventional RRF definition. ``k=60``
+    dampens the influence of lower-ranked items while rewarding agreement
+    between the retrieval channels.
     """
 
-    merged: dict[str, dict] = {}
+    if k < 0:
+        raise ValueError("RRF k must be non-negative.")
+
+    fused: dict[str, dict] = {}
     for channel, matches in (
         ("vector", candidates.vector_matches),
         ("bm25", candidates.bm25_matches),
     ):
-        for match in matches:
+        for rank, match in enumerate(matches, start=1):
             chunk_id = match["chunk_id"]
-            if chunk_id not in merged:
-                merged[chunk_id] = {**match, "retrieval_channels": [channel]}
+            if chunk_id not in fused:
+                fused[chunk_id] = {
+                    **match,
+                    "retrieval_channels": [channel],
+                    "rrf_score": 0.0,
+                }
             else:
-                merged[chunk_id]["retrieval_channels"].append(channel)
+                fused[chunk_id]["retrieval_channels"].append(channel)
 
-    return list(merged.values())
+            fused[chunk_id][f"{channel}_score"] = match["score"]
+            fused[chunk_id]["rrf_score"] += 1.0 / (k + rank)
+
+    results = list(fused.values())
+    results.sort(key=lambda match: match["rrf_score"], reverse=True)
+    for match in results:
+        # Preserve the existing result contract consumed by MQR and the UI.
+        match["score"] = match["rrf_score"]
+    return results
 
 
 def hybrid_retrieve(query: str):
     """
-    Run vector and BM25 retrieval and return their candidate union.
-
-    The downstream CrossEncoder determines the final ordering until RRF is
-    added in the next roadmap step.
+    Run vector and BM25 retrieval, then fuse their ranked lists with RRF.
     """
     candidates = retrieve_hybrid_candidates(query)
-    return merge_hybrid_candidates(candidates)
+    return reciprocal_rank_fusion(candidates)

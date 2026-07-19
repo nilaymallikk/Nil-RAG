@@ -37,6 +37,7 @@ CHUNK_SIZE: int = 1000
 CHUNK_OVERLAP: int = 200
 TOP_K: int = 7
 MIN_SCORE: float = 0.5
+RRF_K: int = 60
 # ==========================
 # LLM SETTINGS
 # ==========================
