@@ -22,31 +22,7 @@ handbook and presents the results through a clean Streamlit chat interface.
 
 ## RAG Architecture
 
-```text
-User Question
-      |
-      v
-Multi-Query Retrieval
-      |
-      +-------------------+
-      |                   |
-      v                   v
-Pinecone Vector Search   BM25 Keyword Search
-      |                   |
-      +---------+---------+
-                |
-                v
-      Reciprocal Rank Fusion
-                |
-                v
-       CrossEncoder Reranker
-                |
-                v
-          Context Builder
-                |
-                v
-        OpenRouter LLM Answer
-```
+![MLGPT RAG architecture](assets/rag-architecture.png)
 
 The Streamlit frontend communicates with FastAPI over HTTP. FastAPI owns the
 RAG workflow and uses Redis to store recent messages and conversation metadata.
@@ -155,21 +131,3 @@ RAG_API_URL=http://127.0.0.1:8001 uv run streamlit run streamlit_app.py
 ```
 
 Open `http://localhost:8501` in a browser.
-
-## Conversation History
-
-Each browser receives an anonymous UUID. Redis uses that identifier to maintain
-a separate conversation index, metadata, and bounded message history. Users can
-start new chats and reopen recent conversations from the Streamlit sidebar.
-
-This anonymous identifier is convenient for a portfolio application, but it is
-not authentication. A real multi-user deployment should add authenticated user
-accounts and use a durable database such as PostgreSQL for permanent history.
-
-## Design Goals
-
-This repository is intended to demonstrate production-minded AI engineering:
-modular components, explicit retrieval stages, hybrid search, rank fusion,
-reranking, externalized prompts, bounded state, API separation, and observable
-source-grounded answers.
-
