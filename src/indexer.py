@@ -31,4 +31,3 @@ def index_pdf(pdf_path: str):
     logger.info("Indexing completed!")
 
     logger.error("Embedding generation failed")
-    logger.warning("No relevant documents found")

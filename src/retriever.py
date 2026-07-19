@@ -2,6 +2,8 @@ from src.vector_store import index
 from src.embedding import get_embedding
 from src.config import TOP_K, MIN_SCORE
 from src.llm import generate_search_queries
+from src.bm25 import bm25_search
+from dataclasses import dataclass
 
 
 # Retrive most relevent chunk
@@ -24,6 +26,9 @@ def retrieve(query: str):
 
         results.append(
             {
+                # Match IDs preserve compatibility with vectors created before
+                # the shared chunk_id metadata contract was introduced.
+                "chunk_id": match.metadata.get("chunk_id", match.id),
                 "text": match.metadata["text"],
                 "page": match.metadata.get("page", 0),
                 "source": match.metadata.get("source", ""),
@@ -127,57 +132,52 @@ def retrieve_multi(question: str):
     
     return matches[:TOP_K]
 
-# Fuse the two result lists (the heart of it)
-from src.bm25 import bm25_search
+@dataclass(frozen=True)
+class HybridCandidates:
+    """Separate ranked candidates produced by each retrieval channel."""
+
+    vector_matches: list[dict]
+    bm25_matches: list[dict]
 
 
-def reciprocal_rank_fusion(result_lists, k=60):
+def retrieve_hybrid_candidates(query: str) -> HybridCandidates:
+    """Retrieve dense and lexical candidates without comparing raw scores."""
+
+    return HybridCandidates(
+        vector_matches=retrieve(query),
+        bm25_matches=bm25_search(query, top_k=TOP_K),
+    )
+
+
+def merge_hybrid_candidates(candidates: HybridCandidates) -> list[dict]:
+    """Create a de-duplicated candidate set for the cross-encoder reranker.
+
+    This is intentionally a union, not score fusion. Vector and BM25 scores
+    are incomparable; RRF will introduce a principled ordering in the next
+    roadmap step.
     """
-    Combine multiple ranked lists into one.
 
-    RRF ignores raw scores and uses only rank position, so vector
-    (0-1) and BM25 (unbounded) scores can be merged safely.
+    merged: dict[str, dict] = {}
+    for channel, matches in (
+        ("vector", candidates.vector_matches),
+        ("bm25", candidates.bm25_matches),
+    ):
+        for match in matches:
+            chunk_id = match["chunk_id"]
+            if chunk_id not in merged:
+                merged[chunk_id] = {**match, "retrieval_channels": [channel]}
+            else:
+                merged[chunk_id]["retrieval_channels"].append(channel)
 
-    Each item's fused score = sum over lists of 1 / (k + rank).
-    `k=60` is the standard constant; it dampens the influence of
-    very low ranks.
-    """
-    fused = {}
-
-    for results in result_lists:
-        for rank, match in enumerate(results):
-            key = (match["source"], match["page"], match["text"])
-
-            if key not in fused:
-                # keep the match, start its fused score at 0
-                fused[key] = {**match, "score": 0.0}
-
-            fused[key]["score"] += 1.0 / (k + rank)
-
-    merged = list(fused.values())
-    merged.sort(key=lambda m: m["score"], reverse=True)
-    return merged
+    return list(merged.values())
 
 
 def hybrid_retrieve(query: str):
     """
-    Run vector + BM25 search and fuse the results with RRF.
+    Run vector and BM25 retrieval and return their candidate union.
+
+    The downstream CrossEncoder determines the final ordering until RRF is
+    added in the next roadmap step.
     """
-    vector_matches = retrieve(query)          # existing cosine search
-    keyword_matches = bm25_search(query, top_k=TOP_K)
-
-    return reciprocal_rank_fusion(
-        [vector_matches, keyword_matches]
-    )
-
-
-
-
-        
-
-
-           
-
-
-
- 
+    candidates = retrieve_hybrid_candidates(query)
+    return merge_hybrid_candidates(candidates)

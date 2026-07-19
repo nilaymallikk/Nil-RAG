@@ -1,5 +1,4 @@
 from pinecone import Pinecone
-import uuid
 from pathlib import Path
 
 from src.config import (
@@ -30,9 +29,12 @@ def build_vectors(chunks, embeddings):
 
         vectors.append(
             {
-                "id": str(uuid.uuid4()),
+                # A deterministic ID makes re-indexing idempotent and gives
+                # BM25 and Pinecone a shared identity for this logical chunk.
+                "id": chunk.metadata["chunk_id"],
                 "values": embedding,
                 "metadata": {
+                    "chunk_id": chunk.metadata["chunk_id"],
                     "text": chunk.page_content,
                     "page": chunk.metadata.get("page", 0),
                     "source": chunk.metadata.get("source", ""),
