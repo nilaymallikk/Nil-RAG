@@ -89,7 +89,7 @@ if args.mode == "index":
 
 elif args.mode == "chat":
 
-    memory = ConversationMemory() # one instance, lives for the whole session
+    memory = ConversationMemory(max_turns=4) # one instance, lives for the whole session
 
     while True:
 

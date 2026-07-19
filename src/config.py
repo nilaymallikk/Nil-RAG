@@ -20,7 +20,7 @@ OPENROUTER_BASE_URL = "https://openrouter.ai/api/v1"
 # MODELS
 # ==========================
 
-CHAT_MODEL: str = "tencent/hy3:free"
+CHAT_MODEL: str = "nvidia/nemotron-3-super-120b-a12b:free"
 EMBEDDING_MODEL = "jina-embeddings-v5-text-small"
 
 # ==========================
