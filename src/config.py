@@ -50,3 +50,11 @@ TEMPERATURE: float = 0.2
 
 RERANKER_MODEL = "cross-encoder/ms-marco-MiniLM-L-6-v2"
 RERANK_TOP_K = 5
+# ==========================
+# Redis
+# ==========================
+
+REDIS_URL = os.getenv("REDIS_URL", "redis://localhost:6379/0")
+CONVERSATION_TTL_SECONDS = int(
+    os.getenv("CONVERSATION_TTL_SECONDS", "86400")
+)

@@ -21,4 +21,5 @@ dependencies = [
     "fastapi>=0.115.0",
     "uvicorn",
     "httpx>=0.28.0",
+    "redis>=8.0.1",
 ]

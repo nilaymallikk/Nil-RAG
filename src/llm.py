@@ -1,17 +1,17 @@
-from src.client import chat_client
-from src.config import CHAT_MODEL
-from src.utils.prompt_loader import load_prompt
+# from src.client import chat_client
+# from src.config import CHAT_MODEL
+# from src.utils.prompt_loader import load_prompt
 
-"""
-llm.py
+# """
+# llm.py
 
-Takes:
-- User question
-- Retrieved context
+# Takes:
+# - User question
+# - Retrieved context
 
-Returns:
-- Generated answer from the LLM
-"""
+# Returns:
+# - Generated answer from the LLM
+# """
 
 
 # def generate_answer(context: str, question: str, memory=None):
@@ -44,40 +44,66 @@ Returns:
 
 #     return response.choices[0].message.content
 
+from __future__ import annotations
 
-history = memory.get_messages() if memory else []
+from pathlib import Path
 
-current_message = {
-    "role": "user",
-    "content": prompt,
-}
+from src.client import chat_client
+from src.config import CHAT_MODEL
+from src.utils.prompt_loader import load_prompt
 
-messages = [*history, current_message]
-
-for position, message in enumerate(messages):
-    if not isinstance(message, dict):
-        raise TypeError(
-            f"Invalid chat message at position {position}: "
-            f"expected dict, got {type(message).__name__}."
-        )
-
-    if message.get("role") not in {"user", "assistant", "system"}:
-        raise ValueError(
-            f"Invalid chat role at position {position}: {message.get('role')!r}"
-        )
-
-    if not isinstance(message.get("content"), str):
-        raise TypeError(
-            f"Invalid message content at position {position}: "
-            "expected a string."
-        )
-
-print(f"\n[DEBUG] Memory has {len(history)} messages")
-
-response = chat_client.chat.completions.create(
-    model=CHAT_MODEL,
-    messages=messages,
+QUERY_PROMPT = Path("prompts/query_rewrite.txt").read_text(
+    encoding="utf-8"
 )
+
+def generate_answer(
+    context: str,
+    question: str,
+    memory=None,
+) -> str:
+    template = load_prompt("rag_prompt.txt")
+
+    prompt = template.format(
+        context=context,
+        question=question,
+    )
+
+    history = memory.get_messages() if memory else []
+
+    current_message = {
+        "role": "user",
+        "content": prompt,
+    }
+
+    messages = [*history, current_message]
+
+    for position, message in enumerate(messages):
+        if not isinstance(message, dict):
+            raise TypeError(
+                f"Invalid message at position {position}: "
+                f"expected dict, got {type(message).__name__}."
+            )
+
+        if message.get("role") not in {"user", "assistant", "system"}:
+            raise ValueError(
+                f"Invalid chat role at position {position}: "
+                f"{message.get('role')!r}"
+            )
+
+        if not isinstance(message.get("content"), str):
+            raise TypeError(
+                f"Invalid message content at position {position}: "
+                "expected a string."
+            )
+
+    print(f"\n[DEBUG] Memory has {len(history)} messages")
+
+    response = chat_client.chat.completions.create(
+        model=CHAT_MODEL,
+        messages=messages,
+    )
+
+    return response.choices[0].message.content
 
 # Add a helper for Multi-Query Retrieval (MQR)
 
