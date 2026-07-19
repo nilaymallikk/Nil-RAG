@@ -1,5 +1,13 @@
 from __future__ import annotations
+
 from typing import TypedDict
+
+
+class ChatMessage(TypedDict):
+    role: str
+    content: str
+
+
 class ConversationMemory:
     def __init__(self, max_turns: int = 4):
         if max_turns < 1:
@@ -28,5 +36,4 @@ class ConversationMemory:
     # Optional utility — useful if you ever want to let the user reset the conversation mid-session (e.g., type "reset" in the chat loop).
 
     def clear(self) -> None:
-        self._hostory.clear()
-    
+        self._history.clear()
